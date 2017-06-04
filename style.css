@@ -31,7 +31,7 @@
     stroke-width: 1.5px;
   }
 
-  circle.node.service {
+  circle.node.pod {
     fill: #fbb;
     stroke: #333;
     stroke-width: 1.5px;

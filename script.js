@@ -113,7 +113,7 @@
           switch (d.nodetype) {
           case 'node':
               return 40;
-          case 'service':
+          case 'pod':
               return 20;
           case 'container':
               return 10;
@@ -172,111 +172,109 @@
 
 
       function loadData() {
-          var swarmNodes = [];
-          var tasks = [];
-          var services = [];
+          var kubeNodes = [];
+          var pods = [];
+          var containers = [];
 
-          $.getJSON("http://192.168.99.100:6969/nodes", null, function(data) {
-              // START SWARM NODES
-              $.each(data, function(index, item) {
-                  swarmNodes.push({"id": item.ID, "name": item.Description.Hostname, "status": item.Status.State, linktype: 'supporting', nodetype: 'node'});
+          $.getJSON("/api/v1/nodes", null, function(data) {
+              var map = {};
+              // START kube nodes
+              $.each(data.items, function(index, item) {
+                  map[item.metadata.name] = item.metadata.uid;
+                  kubeNodes.push({"id": item.metadata.uid, "name": item.metadata.name, "status": "ready", linktype: 'supporting', nodetype: 'node'});
               });
 
-              // START services
-              $.getJSON("http://192.168.99.100:6969/services", null, function(data) {
+              // START pods
+              $.getJSON("/api/v1/pods", null, function(data) {
 
-                  $.each(data, function(index, item) {
-                      services.push({"id": item.ID, "name": item.Spec.Name})
-                  });
+                  $.each(data.items, function(index, item) {
+                      pods.push({"id": item.metadata.uid, "name": item.metadata.name, "status": item.status.phase, "node": item.spec.nodeName})
+                      var podId = item.metadata.uid;
+                      var nodeId = map[item.spec.nodeName];
 
-                  // START TASKS
-                  $.getJSON("http://192.168.99.100:6969/tasks", null, function(data) {
-                      $.each(data, function(index, item) {
-                          if (item.DesiredState !== 'running') {
-                              return;
-                          }
-                          tasks.push({
-                              "id": item.ID, "image": item.Spec.ContainerSpec.Image,
-                              "name": item.Spec.ContainerSpec.Image + "." + item.Slot,
-                              "serviceId": item.ServiceID,
-                              "serviceName": item.Spec.ContainerSpec.Image,
-                              "nodeId": item.NodeID,
-                              "status": item.Status.State
+                      // START containers
+                      $.each(item.status.containerStatuses, function(index, item) {
+                          containers.push({
+                              "id": item.containerID,
+                              "name": item.name,
+                              "image": item.image,
+                              "podId": podId,
+                              "nodeId": nodeId,
+                              "status": "running"
                           })
                       });
-                      buildLinks(swarmNodes, services, tasks);
                   });
+                  buildLinks(kubeNodes, pods, containers);
               });
-
           });
 
 
-          function buildLinks(swarmNodes, services, tasks) {
+         function buildLinks(kubeNodes, pods, containers) {
               var links = [];
 
-              for (var b = 0; b < swarmNodes.length; b++) {
+              for (var b = 0; b < kubeNodes.length; b++) {
 
-                  var swarmNode = swarmNodes[b];
-                  swarmNodeHasLinks = false;
+                  var kubeNode = kubeNodes[b];
+                  kubeNodeHasContainers = false;
 
-                  for (var a = 0; a < services.length; a++) {
-                      var service = services[a];
-                      var taskAdded = false;
-                      for (var i = 0; i < tasks.length; i++) {
-                          var task = tasks[i];
+                  for (var a = 0; a < pods.length; a++) {
+                      var pod = pods[a];
+                      var containerAdded = false;
+                      for (var i = 0; i < containers.length; i++) {
+                          var container = containers[i];
 
-                          // If task not present on node, skip
-                          if (task.nodeId !== swarmNode.id) {
+                          // If container not present on node, skip
+                          if (container.nodeId !== kubeNode.id) {
                               continue;
                           }
 
-                          if (task.serviceId == service.id) {
+                          if (container.podId == pod.id) {
                               var link = {
                                   source: {
-                                      id: task.id,
-                                      name: task.name,
+                                      id: container.id,
+                                      name: container.name,
                                       linktype: "serviceinstance",
-                                      status: task.status,
-                                      nodeId: task.nodeId
+                                      status: container.status,
+                                      nodeId: container.nodeId
                                   },
                                   target: {
-                                      id: service.id + '-' + task.nodeId,
-                                      name: service.name,
+                                      id: pod.id + '-' + container.nodeId,
+                                      name: pod.name,
                                       linktype: "serviceinstance",
-                                      status: '',
-                                      nodeId: task.nodeId
-                                  }, // Services don't have statuses. Not here :)
+                                      status: pod.status,
+                                      nodeId: container.nodeId
+                                  },
                                   src: 'container',
-                                  tgt: 'service'
+                                  tgt: 'pod'
                               };
                               links.push(link);
-                              taskAdded = true;
+                              containerAdded = true;
                           }
                       }
 
-                      // Add link from service to swarm node
-                      if (taskAdded) {
+                      // Add link from pod to kube node
+                      if (containerAdded) {
                           var nlink = {
                               source: {
-                                  id: service.id + '-' + swarmNode.id,
-                                  name: service.name,
+                                  id: pod.id + '-' + kubeNode.id,
+                                  name: pod.name,
                                   linktype: 'supporting',
-                                  nodetype: 'service',
+                                  nodetype: 'pod',
                                   status: ''
                               },
-                              target: swarmNode,
+                              target: kubeNode,
                               src: 'service',
                               tgt: 'node'
                           };
                           links.push(nlink);
-                          swarmNodeHasLinks = true;
+                          kubeNodeHasContainers = true;
                       }
 
                   }
 
-                  // Hack! If the swarm node has no tasks / services, we need to add it manually.
-                  if (!swarmNodeHasLinks) {
-                       nodes.push(swarmNode);
+                  // Hack! If the kube node has no containers / pods, we need to add it manually.
+                  if (!kubeNodeHasContainers) {
+                       nodes.push(kubeNode);
                   }
 
               }
@@ -342,6 +340,7 @@
       }
 
 
+/*
       // Start websocket code
       ws = new WebSocket("ws://192.168.99.100:6969/start");
       ws.onmessage = function(e) {
@@ -388,6 +387,7 @@
       }
   
   
+*/
 
 // Start event handler functions
 
@@ -526,9 +526,7 @@
           links.push({source: newNode, target: serviceNode});
           update_graph();
       }
-  </script>
 
-  <script>
     function resolveLinkTypeFromName(name) {
         if (name.indexOf("service") > -1) {
             return "serviceinstance";
