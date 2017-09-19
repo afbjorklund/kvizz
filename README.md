@@ -13,3 +13,18 @@ Task states
 - Green with red border: *preparing*
 - Gray: *allocated*
 
+### Installation instructions
+
+Proxy the kubernetes api and the www content:
+
+    kubectl proxy --www=. &
+
+Open a web browser to view the visualization:
+
+    xdg-open http://localhost:8001/static/
+
+# 3rd party libraries
+- d3js.org (https://d3js.org/)
+
+# License
+MIT license, see [LICENSE](LICENSE)
