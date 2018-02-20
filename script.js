@@ -17,9 +17,13 @@
           .size([width, height])
           .on("tick", tick);
       // add an SVG element inside the DOM's BODY element
-      var svg = d3.select("body").append("svg")
+var svg = d3.select("body").append("svg")
           .attr("width", width)
-          .attr("height", height);
+          .attr("height", height)
+	  .call(d3.behavior.zoom().on("zoom", function () {
+	      svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+	  }))
+	  .append("g")
 
 
       function update_graph() {
