@@ -1,62 +1,61 @@
-
-  .link {
+.link {
     fill: none;
     stroke: #666;
     stroke-width: 1.5px;
-  }
+}
 
-  #serviceinstance {
+#serviceinstance {
     fill: black;
     stroke-width: 1.5px;
-  }
+}
 
-  .link.serviceinstance {
+.link.serviceinstance {
     stroke: darkgrey;
     stroke-width: 1.5px;
-  }
+}
 
-  .link.supporting {
+.link.supporting {
     stroke-dasharray: 0, 2 1;
-  }
+}
 
-  circle {
+circle {
     fill: #fff;
     stroke: #333;
     stroke-width: 1.5px;
-  }
+}
 
-  circle.node {
+circle.node {
     fill: #aaa;
     stroke: #333;
     stroke-width: 1.5px;
-  }
+}
 
-  circle.node.pod {
+circle.node.pod {
     fill: #fbb;
     stroke: #333;
     stroke-width: 1.5px;
-  }
+}
 
-  circle.container.starting {
+circle.container.starting {
     fill: #bfb;
     stroke: #f33;
     stroke-width: 2.5px;
-  }
+}
 
-  circle.container.running {
+circle.container.running {
     fill: #bfb;
     stroke: #333;
     stroke-width: 1.5px;
-  }
+}
 
-  circle.container.shutdown {
+circle.container.shutdown {
     fill: #eee;
     stroke: #f33;
     stroke-width: 2.5px;
-  }
+}
 
-  text {
+text {
     font: 10px sans-serif;
     pointer-events: none;
     text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
-  }
+}

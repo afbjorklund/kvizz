@@ -1,5 +1,5 @@
-var width = 1440,  // width and height of the SVG canvas
-    height = 900;
+var width = window.innerWidth;  // width and height of the SVG canvas
+var height = window.innerHeight;
 // A list of node objects.  We represent each node as {id: "name"}, but the D3
 // system will decorate the node with addtional fields, notably x: and y: for
 // the force layout and index" as part of the binding mechanism.
@@ -14,8 +14,8 @@ var force = d3.layout.force()
     .links(links)
     .linkDistance(80)
     .charge(-800)
-    .size([width, height])
     .on("tick", tick);
+
 // add an SVG element inside the DOM's BODY element
 var svg = d3.select("body").append("svg")
     .attr("width", width)
@@ -25,9 +25,16 @@ var svg = d3.select("body").append("svg")
     }))
     .append("g")
 
+resize();
+d3.select(window).on("resize", resize);
+
+function resize() {
+    width = window.innerWidth, height = window.innerHeight;
+    svg.attr("width", width).attr("height", height);
+    force.size([width, height]).resume();
+}
 
 function update_graph() {
-
     // Per-type markers, as they don't inherit styles.
     svg.append("defs").selectAll("marker")
         .data(["runningon", "serviceinstance", "supporting"])
@@ -35,7 +42,7 @@ function update_graph() {
         .attr("id", function(d) {
             return d;
         })
-        .attr("viewBox", "-5 -5 10 10") //"0 -5 10 10")
+        // .attr("viewBox", "-5 -5 10 10") //"0 -5 10 10")
         .attr("refX", function(d) {
             if (d === 'serviceinstance') {
                 return 28;
