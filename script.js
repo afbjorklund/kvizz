@@ -205,13 +205,21 @@ function loadData() {
 
                 // START containers
                 $.each(item.status.containerStatuses, function(index, item) {
+                    state = 'unknown';
+                    if (item.state.waiting)
+                        state = 'waiting';
+                    else if (item.state.running)
+                        state = 'running';
+                    else if (item.state.terminated)
+                        state = 'terminated';
+
                     containers.push({
                         "id": item.containerID,
                         "name": item.name,
                         "image": item.image,
                         "podId": podId,
                         "nodeId": nodeId,
-                        "status": "running"
+                        "status": state
                     })
                 });
             });
