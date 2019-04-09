@@ -96,7 +96,7 @@ function update_graph() {
             return d.id;
         })
         .attr("class", function(d) {
-            return 'node ' + d.nodetype + ' ' + d.state;
+            return 'node ' + d.nodetype + ' ' + (d.namespace || d.state);
         })
         .attr("r", function(d) {
             return sizeFromType(d)
@@ -199,7 +199,7 @@ function loadData() {
         $.getJSON("/api/v1/pods", null, function(data) {
 
             $.each(data.items, function(index, item) {
-                pods.push({"id": item.metadata.uid, "name": item.metadata.name, "status": item.status.phase, "node": item.spec.nodeName})
+                pods.push({"id": item.metadata.uid, "name": item.metadata.name, "status": item.status.phase, "node": item.spec.nodeName, "namespace": item.metadata.namespace})
                 var podId = item.metadata.uid;
                 var nodeId = map[item.spec.nodeName];
 
@@ -261,6 +261,7 @@ function loadData() {
                                 name: pod.name,
                                 linktype: "serviceinstance",
                                 status: pod.status,
+                                namespace: pod.namespace,
                                 nodeId: container.nodeId
                             },
                             src: 'container',
@@ -311,6 +312,7 @@ function addToGraph(mylinks) {
             xnodes[link.source.id] || (xnodes[link.source.id] = {
                 id: link.source.id,
                 name: link.source.name,
+                namespace: link.source.namespace,
                 nodetype: link.src,
                 linktype: link.source.linktype,
                 state: link.source.status,
@@ -320,6 +322,7 @@ function addToGraph(mylinks) {
             xnodes[link.target.id] || (xnodes[link.target.id] = {
                 id: link.target.id,
                 name: link.target.name,
+                namespace: link.target.namespace,
                 nodetype: link.tgt,
                 linktype: link.target.linktype,
                 state: link.target.status,

@@ -36,6 +36,12 @@ circle.node.pod {
     stroke-width: 1.5px;
 }
 
+circle.node.pod.kube-system {
+    fill: #bbf;
+    stroke: #333;
+    stroke-width: 1.5px;
+}
+
 circle.container.starting {
     fill: #bfb;
     stroke: #f33;
