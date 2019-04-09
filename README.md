@@ -25,6 +25,7 @@ Open a web browser to view the visualization:
 
 # 3rd party libraries
 - d3js.org (https://d3js.org/)
+- oboe.js (http://oboejs.com/)
 
 # License
 MIT license, see [LICENSE](LICENSE)

@@ -359,14 +359,16 @@ function contains(a, obj) {
 }
 
 
-/*
-// Start websocket code
-ws = new WebSocket("ws://192.168.99.100:6969/start");
-ws.onmessage = function(e) {
-var evt = JSON.parse(e.data);
-console.log(e.data);
-handleWebSocketMessage(evt);
-};
+      // Start long polling
+      function poll(type) {
+        oboe("/api/v1/" + type + "?watch")
+            .done(function( evt ){
+                console.log(evt);
+                //handleWebSocketMessage(evt)
+        });
+      }
+      poll("nodes");
+      poll("pods");
 
 function handleWebSocketMessage(evt) {
 // When a NEW task has been added
@@ -405,8 +407,6 @@ handleTaskStateUpdate(evt);
 }
 }
 
-
-*/
 
 // Start event handler functions
 
