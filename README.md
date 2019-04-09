@@ -6,7 +6,7 @@ Inspired by the excellent [eriklupander/dvizz](https://github.com/eriklupander/d
 Legend:
 - Big Gray circle: *Kubernetes Node*
 - Medium size red circle: *Kubernetes Pod*
-- Small green circle: *Docker Container*
+- Small green circle: *CRI Container*
 
 Task states
 - Green: *running*
